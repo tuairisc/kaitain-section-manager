@@ -1,5 +1,5 @@
 # Social Meta
-[section-manager.php](section-manager.php) is a self-containe library for a WordPress theme that segregates your site into sections based on input parent categories.
+[section-manager.php](section-manager.php) is a self-contained library for a WordPress theme that segregates your site into sections based on input parent categories.
 
 ## Usage
 Instantiate the class with: 
