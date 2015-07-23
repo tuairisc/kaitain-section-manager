@@ -3,31 +3,27 @@
 /**
 * Site Sections
 * -----------------------------------------------------------------------------
-* The eight sections of the Tuairisc site, with a ninth fallback class for
-* every other thing that does not fit neatly into these. The order of these 
-* elements is important, because this is the order in which the menu is output.
-* 
-* @category   PHP Script
-* @package    Tuairisc.ie
+ * @category   PHP Script
+ * @package    Section Manager
  * @author     Mark Grealish <mark@bhalash.com>
- * @copyright  Copyright (c) 2014-2015, Tuairisc Bheo Teo
+ * @copyright  Copyright (c) 2014-2015, Mark Grealish
  * @license    https://www.gnu.org/copyleft/gpl.html The GNU General Public License v3.0
  * @version    2.0
- * @link       https://github.com/bhalash/tuairisc.ie
+ * @link       https://github.com/bhalash/section-manager
  *
- * This file is part of Tuairisc.ie.
+ * This file is part of Section Manager.
  * 
- * Tuairisc.ie is free software: you can redistribute it and/or modify it under the
+ * Section Manager is free software: you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software 
  * Foundation, either version 3 of the License, or (at your option) any later
  * version.
  * 
- * Tuairisc.ie is distributed in the hope that it will be useful, but WITHOUT ANY 
+ * Section Manager is distributed in the hope that it will be useful, but WITHOUT ANY 
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
  * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License along with 
- * Tuairisc.ie. If not, see <http://www.gnu.org/licenses/>.
+ * Section Manager. If not, see <http://www.gnu.org/licenses/>.
  */ 
 
 class Section_Manager {
