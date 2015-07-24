@@ -243,8 +243,14 @@ class Section_Manager {
      * @return  string          $slog           Slug for current section.
      */
 
-    private function get_section_slug($category) {
+    public function get_section_slug($category) {
         $slug = 'other';
+
+        $category = get_category($category); 
+
+        if ($category) {
+            $category = $this->category_parent_id($category->cat_ID);
+        }
 
         /* Since '999' doesn't exist as a section, going to a tag or search
          * would cause a warning to be thrown since it comes up '999'. */
