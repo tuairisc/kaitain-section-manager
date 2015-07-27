@@ -369,7 +369,7 @@ class Section_Manager {
 
                     if ($key === $section['slug']) {
                         $uncurrent = '';
-                        $classes[] 'current-section-menu-item';
+                        $classes[] = 'current-section-menu-item';
                     }
                         
                     $classes[] = sprintf('section-%s-background%s', $key, $uncurrent);
