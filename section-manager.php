@@ -328,7 +328,7 @@ class Section_Manager {
 
         $li = array();
 
-        $li[] = '<li%s role="menuitem">';
+        $li[] = '<li%s role="sections-menu-item">';
 
         $li[] = sprintf('<a title="%s" href="%s">%s</a>',
             $category->cat_name,
@@ -365,8 +365,15 @@ class Section_Manager {
                 if ($menu_type === 'primary') {
                     /* Primary menu items have hover and current section classes.
                      * Uncurrent-section only show section colour on hover. */
-                    $uncurrent = ($key !== $section['slug']) ? '-hover' : '';
+                    $uncurrent = '-hover';
+
+                    if ($key === $section['slug']) {
+                        $uncurrent = '';
+                        $classes[] 'current-section-menu-item';
+                    }
+                        
                     $classes[] = sprintf('section-%s-background%s', $key, $uncurrent);
+
                 }
                 
                 if (!empty($classes)) {
