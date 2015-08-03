@@ -319,7 +319,7 @@ class Section_Manager {
      * @return  string  $ln                 Generated menu item.
      */
 
-    function generate_menu_item($category) {
+    private function generate_menu_item($category) {
         $category = get_category($category);
 
         if (!$category) {
@@ -347,7 +347,7 @@ class Section_Manager {
      * @param   array   $args      Arguments for menu output (type and classes).
      */
 
-    function sections_menu($menu_type = 'primary', $menu_classes = array()) {
+    public function sections_menu($menu_type = 'primary', $menu_classes = array()) {
         $section = self::$section;
 
         // Get menu from saved menu, and reduce secondary if called.
@@ -373,7 +373,6 @@ class Section_Manager {
                     }
                         
                     $classes[] = sprintf('section-%s-background%s', $key, $uncurrent);
-
                 }
                 
                 if (!empty($classes)) {
