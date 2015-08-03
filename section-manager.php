@@ -48,6 +48,9 @@ class Section_Manager {
     // Fallback category ID;
     private static $fallback_id = 999;
 
+    public static $sections = array();
+    public static $menus = array();
+
     public function __construct($categories) {
         if (self::$instantiated) {
             // More than one running instance can lead to strange things.
@@ -67,6 +70,10 @@ class Section_Manager {
             $this->option_setup($categories);
             $this->menu_setup();
         }
+
+        // Public variables for menu and section attributes.
+        self::$sections = get_option(self::$keys['sections'])['section'];
+        self::$menus = get_option(self::$keys['menus'])['menu'];
 
         add_action('wp_head', array($this, 'set_current_section'));
         add_filter('body_class', array($this, 'set_section_body_class'));
