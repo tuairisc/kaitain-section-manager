@@ -459,7 +459,7 @@ class Section_Manager {
                 $slug
             );
 
-            $link = sprintf('<a%s title="%s" href="%s"><strong>%s</strong></a>',
+            $link = sprintf('<a%s title="%s" href="%s">%s</a>',
                 // Anchor, to go inside following menu item.
                 $this->item_class_attribute($args['anchor_class']),
                 esc_attr($parent->cat_name),
