@@ -476,7 +476,7 @@ class Section_Manager {
                 foreach ($children as $child) {
                     $link = sprintf('<a title="%s" href="%s">%s</a>',
                         esc_attr($child->cat_name),
-                        get_category_link($child->cat_id),
+                        get_category_link($child->cat_ID),
                         $child->cat_name
                     );
 
