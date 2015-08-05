@@ -430,9 +430,9 @@ class Section_Manager {
             'wrap_container' => true,
             'container_type' => 'nav',
             'container_class' => 'footer-site-sections',
-            'menu_class' => '',
-            'menu_item_class' => 'normal',
-            'anchor_class' => ''
+            'menu_class' => 'footer-section-menu',
+            'menu_item_class' => 'footer-section-item',
+            'anchor_class' => 'footer-section-link'
         );
 
         $args = wp_parse_args($defaults, $args);
