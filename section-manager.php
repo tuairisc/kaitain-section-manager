@@ -103,8 +103,9 @@ class Section_Manager {
             $category = get_category($cat);
 
             if (!$category) {
-                trigger_error(sprintf(
-                    self::$errors['not_category'], $cat), E_USER_WARNING
+                trigger_error(
+                    sprintf(self::$errors['not_category'], $cat),
+                    E_USER_WARNING
                 );
 
                 continue;
@@ -112,7 +113,8 @@ class Section_Manager {
 
             if ($category->category_parent) {
                 trigger_error(sprintf(
-                    self::$errors['is_child'], $cat), E_USER_WARNING
+                    self::$errors['is_child'], $cat),
+                    E_USER_WARNING
                 );
 
                 continue;
