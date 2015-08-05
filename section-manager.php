@@ -448,26 +448,26 @@ class Section_Manager {
                 if ($count % $args['sections_per_column'] === 1) {
                     printf('<%s%s>',
                         $args['container_type'],
-                        item_class_attribute($args['container_class'])
+                        $this->item_class_attribute($args['container_class'])
                     );
                 }
             }
 
             printf('<ul%s id="section-footer-menu-%s">', 
-                item_class_attribute($args['menu_class']),
+                $this->item_class_attribute($args['menu_class']),
                 $slug
             );
 
             $link = sprintf('<a%s title="%s" href="%s"><strong>%s</strong></a>',
                 // Anchor, to go inside following menu item.
-                item_class_attribute($args['anchor_class']),
+                $this->item_class_attribute($args['anchor_class']),
                 esc_attr($parent->cat_name),
                 get_category_link($parent->cat_ID),
                 $parent->cat_name
             );
 
             printf('<li%s>%s</li>',
-                item_class_attribute($args['menu_item_class']),
+                $this->item_class_attribute($args['menu_item_class']),
                 $link
             );
 
@@ -481,7 +481,7 @@ class Section_Manager {
                     );
 
                     printf('<li%s><a title="%s" href="%s">%s</a></li>',
-                        item_class_attribute($args['menu_item_class']),
+                        $this->item_class_attribute($args['menu_item_class']),
                         $link
                     );
                 }
@@ -499,8 +499,15 @@ class Section_Manager {
         }
     }
 
-    function item_class_attribute($classname = null) {
-        return sprintf($classname ? ' class="%s"' : '%s', $classname); 
+    /*
+     * Add Cavalcade Item Attribute
+     * -------------------------------------------------------------------------
+     * @param   string    $class       Class attribute.
+     * @return  string    $class       Class attribute HTML. 
+     */
+
+    private function item_class_attribute($class = null) {
+        return sprintf($class ? ' class="%s"' : '%s', $class); 
     }
 }
 
