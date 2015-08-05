@@ -7,20 +7,21 @@
  * @package    Section Manager
  * @author     Mark Grealish <mark@bhalash.com>
  * @copyright  Copyright (c) 2014-2015, Mark Grealish
- * @license    https://www.gnu.org/copyleft/gpl.html The GNU General Public License v3.0
+ * @license    https://www.gnu.org/copyleft/gpl.html The GNU GPL v3.0
  * @version    2.0
  * @link       https://github.com/bhalash/section-manager
  *
  * This file is part of Section Manager.
  * 
- * Section Manager is free software: you can redistribute it and/or modify it under the
- * terms of the GNU General Public License as published by the Free Software 
- * Foundation, either version 3 of the License, or (at your option) any later
- * version.
+ * Section Manager is free software: you can redistribute it and/or modify it 
+ * under the terms of the GNU General Public License as published by the Free
+ * Software Foundation, either version 3 of the License, or (at your option) any
+ * later version.
  * 
- * Section Manager is distributed in the hope that it will be useful, but WITHOUT ANY 
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
- * A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ * Section Manager is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+ * details.
  * 
  * You should have received a copy of the GNU General Public License along with 
  * Section Manager. If not, see <http://www.gnu.org/licenses/>.
@@ -65,7 +66,8 @@ class Section_Manager {
 
         $sections = get_option(self::$keys['sections']);
 
-        if ($categories['categories'] !== $sections['id'] || $categories['home'] !== $sections['home'] || WP_DEBUG) {
+        if ($categories['categories'] !== $sections['id'] 
+        || $categories['home'] !== $sections['home'] || WP_DEBUG) {
             // Update generated options and menu if sctions have changed.
             $this->option_setup($categories);
             $this->menu_setup();
@@ -101,12 +103,18 @@ class Section_Manager {
             $category = get_category($cat);
 
             if (!$category) {
-                trigger_error(sprintf(self::$errors['not_category'], $cat), E_USER_WARNING);
+                trigger_error(sprintf(
+                    self::$errors['not_category'], $cat), E_USER_WARNING
+                );
+
                 continue;
             }
 
             if ($category->category_parent) {
-                trigger_error(sprintf(self::$errors['is_child'], $cat), E_USER_WARNING);
+                trigger_error(sprintf(
+                    self::$errors['is_child'], $cat), E_USER_WARNING
+                );
+
                 continue;
             }
 
@@ -114,15 +122,17 @@ class Section_Manager {
             $sections['section'][$category->cat_ID] = $category->slug;
         }
 
-        // If home is set, use it, otherwise, pick first passed category.
-
         if (isset($categories['home']) && get_category($categories['home'])) {
-            $sections['home']['id'] = $categories['home'];
-            $sections['home']['slug'] = $this->get_section_slug($categories['home']);
+            // If home is set, use it, otherwise, pick first passed category.
+            $home_id = $categories['home'];
+            $home_slug = $this->get_section_slug($categories['home']);
         } else {
-            $sections['home']['id'] = $sections['id'][0];
-            $sections['home']['slug'] = $this->get_section_slug($sections['id'][0]);
+            $home_id = $sections['id'][0];
+            $home_slug = $this->get_section_slug($sections['id'][0]);
         }
+
+        $sections['home']['id'] = $home_id;
+        $sections['home']['slug'] = $home_slug;
 
         update_option(self::$keys['sections'], $sections);
         return $sections;
@@ -141,7 +151,7 @@ class Section_Manager {
      */
 
     public function set_current_section() {
-        $sections = get_option(self::$keys['sections']);
+        $sections =& get_option(self::$keys['sections']);
 
         /* Temporary (probably). The client has not decided how to handle
          * non-section parts of the site, so it is all home for now. */
@@ -189,7 +199,7 @@ class Section_Manager {
 
     private function is_section_category($category) {
         $category = get_category($category);
-        $key = self::$keys['sections'];
+        $key =& self::$keys['sections'];
 
         if (!$category) {
             return false;
@@ -232,7 +242,9 @@ class Section_Manager {
         $category = get_category($category);
         $children = array();
 
-        $categories = get_categories(array('child_of' => $category->cat_ID));
+        $categories = get_categories(array(
+            'child_of' => $category->cat_ID)
+        );
 
         if ($categories) {
             foreach($categories as $cat) {
@@ -252,7 +264,6 @@ class Section_Manager {
 
     public function get_section_slug($category) {
         $slug = 'other';
-
         $category = get_category($category); 
 
         if ($category) {
@@ -303,18 +314,18 @@ class Section_Manager {
 
     private function menu_setup() {
         $sections = get_option(self::$keys['sections']);
-        $menus = array();
+        $menu = array();
 
         foreach ($sections['section'] as $id => $slug) {
-            $menus['primary'][$slug] = $this->generate_menu_item($id);
+            $menu['primary'][$slug] = $this->generate_menu_item($id);
             
             foreach ($this->category_children($id) as $child) {
-                $menus['secondary'][$slug][] = $this->generate_menu_item($child);
+                $menu['secondary'][$slug][] = $this->generate_menu_item($child);
             }
         }
 
-        update_option(self::$keys['menus'], $menus);
-        return $menus;
+        update_option(self::$keys['menu'], $menu);
+        return $menu;
     }
 
     /**
@@ -354,7 +365,7 @@ class Section_Manager {
      * @param   array   $args      Arguments for menu output (type and classes).
      */
 
-    public function sections_menu($menu_type = 'primary', $menu_classes = array()) {
+    public function sections_menu($menu_type = 'primary', $classes = array()) {
         $section = self::$section;
 
         // Get menu from saved menu, and reduce secondary if called.
@@ -366,11 +377,11 @@ class Section_Manager {
 
         if (!empty($menu)) {
             foreach ($menu as $key => $item) {
-                $classes = $menu_classes;
+                $classes = $classes;
                 $class_attr = '';
 
                 if ($menu_type === 'primary') {
-                    /* Primary menu items have hover and current section classes.
+                    /* Primary menu items have hover and section classes.
                      * Uncurrent-section only show section colour on hover. */
                     $uncurrent = '-hover';
 
@@ -379,7 +390,10 @@ class Section_Manager {
                         $classes[] = 'current-section-menu-item';
                     }
                         
-                    $classes[] = sprintf('section-%s-background%s', $key, $uncurrent);
+                    $classes[] = sprintf('section-%s-background%s', 
+                        $key,
+                        $uncurrent
+                    );
                 }
                 
                 if (!empty($classes)) {
@@ -391,6 +405,102 @@ class Section_Manager {
                 printf($item, sprintf($class_attr, implode(' ', $classes)));
             }
         }
+    }
+
+    /*
+     * Section Cavalcade
+     * -------------------------------------------------------------------------
+     * Generate a cavalcade list of sections and child categories output as 
+     * 
+     * container
+     *      ul
+     *         section
+     *         child
+     *         child
+     *         child
+     *
+     * @param   array   $args      Arguments for menu output (type and classes).
+     */
+
+    public function section_cavalcade($args) {
+        $count = 1;
+
+        $defaults = array(
+            'sections_per_column' => 3,
+            'wrap_container' => true,
+            'container_type' => 'nav',
+            'container_class' => 'footer-site-sections',
+            'menu_class' => '',
+            'menu_item_class' => 'normal',
+            'anchor_class' => ''
+        );
+
+        $args = wp_parse_args($defaults, $args);
+
+        foreach (self::$sections as $id => $slug) {
+            $parent = get_category($id);
+
+            $children = get_categories(array(
+                'child_of' => $id
+            ));
+
+            if ($args['wrap_container']) {
+                if ($count % $args['sections_per_column'] === 1) {
+                    printf('<%s%s>',
+                        $args['container_type'],
+                        item_class_attribute($args['container_class'])
+                    );
+                }
+            }
+
+            printf('<ul%s id="section-footer-menu-%s">', 
+                item_class_attribute($args['menu_class']),
+                $slug
+            );
+
+            $link = sprintf('<a%s title="%s" href="%s"><strong>%s</strong></a>',
+                // Anchor, to go inside following menu item.
+                item_class_attribute($args['anchor_class']),
+                esc_attr($parent->cat_name),
+                get_category_link($parent->cat_ID),
+                $parent->cat_name
+            );
+
+            printf('<li%s>%s</li>',
+                item_class_attribute($args['menu_item_class']),
+                $link
+            );
+
+            if ($children) {
+                // Some sections may not have children categories.
+                foreach ($children as $child) {
+                    $link = sprintf('<a title="5s" href="%s">%s</a>'
+                        esc_attr($child->cat_name),
+                        get_category_link($child->cat_id),
+                        $child->cat_name
+                    );
+
+                    printf('<li%s><a title="%s" href="%s">%s</a></li>',
+                        item_class_attribute($args['menu_item_class']),
+                        $link
+                    );
+                }
+            }
+
+            printf('</ul>');
+
+            if ($args['wrap_container']) {
+                if ($count > 0 && $count % $args['sections_per_column'] === 0) {
+                    printf('</%s>', $args['container_type']);
+                }
+            }
+
+            $count++;
+        }
+    }
+
+    function item_class_attribute($classname = null) {
+        return sprintf($classname ? ' class="%s"' : '%s', $classname); 
     }
 }
 
