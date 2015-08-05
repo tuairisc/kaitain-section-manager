@@ -75,7 +75,7 @@ class Section_Manager {
 
         // Public variables for menu and section attributes.
         self::$sections = get_option(self::$keys['sections'])['section'];
-        self::$menus = get_option(self::$keys['menus'])['menu'];
+        self::$menus = get_option(self::$keys['menus']);
 
         add_action('wp_head', array($this, 'set_current_section'));
         add_filter('body_class', array($this, 'set_section_body_class'));
