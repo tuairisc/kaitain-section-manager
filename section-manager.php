@@ -480,7 +480,7 @@ class Section_Manager {
                         $child->cat_name
                     );
 
-                    printf('<li%s><a title="%s" href="%s">%s</a></li>',
+                    printf('<li%s>%s</li>',
                         $this->item_class_attribute($args['menu_item_class']),
                         $link
                     );
