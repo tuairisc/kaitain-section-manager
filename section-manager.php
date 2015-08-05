@@ -378,7 +378,7 @@ class Section_Manager {
 
         if (!empty($menu)) {
             foreach ($menu as $key => $item) {
-                $classes = $classes;
+                $menu_class = $classes;
                 $class_attr = '';
 
                 if ($menu_type === 'primary') {
@@ -388,22 +388,20 @@ class Section_Manager {
 
                     if ($key === $section['slug']) {
                         $uncurrent = '';
-                        $classes[] = 'current-section-menu-item';
+                        $menu_class[] = 'current-section-menu-item';
                     }
                         
-                    $classes[] = sprintf('section-%s-background%s', 
+                    $menu_class[] = sprintf('section-%s-background%s', 
                         $key,
                         $uncurrent
                     );
                 }
                 
-                if (!empty($classes)) {
-                    // Menu items are generated with '<li%s role=...'
-                    $class_attr = ' class="%s"';
-                }
+                $menu_class = implode(' ', $menu_class);
+                $menu_class = $this->item_class_attribute($menu_class);
 
                 // Put it all together and output.
-                printf($item, sprintf($class_attr, implode(' ', $classes)));
+                printf($item, $menu_class);
             }
         }
     }
