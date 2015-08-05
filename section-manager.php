@@ -367,7 +367,7 @@ class Section_Manager {
      */
 
     public function sections_menu($menu_type = 'primary', $classes = array()) {
-        $section = self::$section;
+        $section =& self::$section;
 
         // Get menu from saved menu, and reduce secondary if called.
         $menu = get_option(self::$keys['menus'])[$menu_type];
