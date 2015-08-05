@@ -275,7 +275,7 @@ class Section_Manager {
         /* Since '999' doesn't exist as a section, going to a tag or search
          * would cause a warning to be thrown since it comes up '999'. */
 
-        if ($category && $category !== self::$fallback_id) {
+        if ($category && array_key_exists($category, self::$sections)) {
             $option = get_option(self::$keys['sections'])['section'][$category];
 
             if ($option) {
@@ -291,7 +291,7 @@ class Section_Manager {
      * -------------------------------------------------------------------------
      * Attacch current section to body_class. I think it's a bit mad like that 
      * WordPress doesn't have an action for body_id.
-     *
+     e
      * @param   array       $classes        Array of body classes.
      * @return  array       $classes        Array of body classes.
      */
@@ -326,7 +326,7 @@ class Section_Manager {
             }
         }
 
-        update_option(self::$keys['menu'], $menu);
+        update_option(self::$keys['menus'], $menu);
         return $menu;
     }
 
