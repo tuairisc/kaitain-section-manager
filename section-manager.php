@@ -474,7 +474,7 @@ class Section_Manager {
             if ($children) {
                 // Some sections may not have children categories.
                 foreach ($children as $child) {
-                    $link = sprintf('<a title="5s" href="%s">%s</a>'
+                    $link = sprintf('<a title="5s" href="%s">%s</a>',
                         esc_attr($child->cat_name),
                         get_category_link($child->cat_id),
                         $child->cat_name
