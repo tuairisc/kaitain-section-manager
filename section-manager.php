@@ -46,9 +46,6 @@ class Section_Manager {
         'is_child' => '"%s" is a child category and will be skipped'
     );
 
-    // Fallback category ID;
-    private static $fallback_id = 999;
-
     public static $sections = array();
     public static $menus = array();
 
