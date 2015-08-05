@@ -343,20 +343,15 @@ class Section_Manager {
         if (!$category) {
             return;
         }
+        
+        // Handled through an array because it is stored and retrived later.
+        $item = array();
 
-        $li = array();
+        $item[] = '<li%s>';
+        $item[] = $this->generate_cat_link($category);
+        $item[] = '</li>';
 
-        $li[] = '<li%s role="sections-menu-item">';
-
-        $li[] = sprintf('<a title="%s" href="%s">%s</a>',
-            $category->cat_name,
-            esc_url(get_category_link($category->cat_ID)),
-            $category->cat_name
-        );
-
-        $li[] = '</li>';
-
-        return implode('', $li);
+        return implode('', $item);
     }
 
     /*
@@ -457,31 +452,17 @@ class Section_Manager {
                 $slug
             );
 
-            $link = sprintf('<a%s title="%s" href="%s">%s</a>',
-                // Anchor, to go inside following menu item.
-                $this->item_class_attribute($args['anchor_class']),
-                esc_attr($parent->cat_name),
-                get_category_link($parent->cat_ID),
-                $parent->cat_name
-            );
-
             printf('<li%s>%s</li>',
                 $this->item_class_attribute($args['menu_item_class']),
-                $link
+                $this->generate_cat_link($parent, $args['anchor_class'])
             );
 
             if ($children) {
                 // Some sections may not have children categories.
                 foreach ($children as $child) {
-                    $link = sprintf('<a title="%s" href="%s">%s</a>',
-                        esc_attr($child->cat_name),
-                        get_category_link($child->cat_ID),
-                        $child->cat_name
-                    );
-
                     printf('<li%s>%s</li>',
                         $this->item_class_attribute($args['menu_item_class']),
-                        $link
+                        $this->generate_cat_link($child)
                     );
                 }
             }
@@ -498,15 +479,45 @@ class Section_Manager {
         }
     }
 
-    /*
-     * Add Cavalcade Item Attribute
+    /**
+     * Add Class Attribute
      * -------------------------------------------------------------------------
-     * @param   string    $class       Class attribute.
-     * @return  string    $class       Class attribute HTML. 
+     * Returns ' class="$foo_class"' if $class isn't empty.
+     *
+     * @param   string    $class       class attribute.
+     * @return  string    $class       class attribute html. 
      */
 
     private function item_class_attribute($class = null) {
         return sprintf($class ? ' class="%s"' : '%s', $class); 
+    }
+
+    /**
+     * Generate Category Link Text
+     * -------------------------------------------------------------------------
+     * 
+     * @param   int/object      $category       Category that needs to be linked.
+     * @param   string/array    $class          Class(es) to be added to link.
+     */
+
+    private function generate_cat_link($category, $class = null) {
+        $link = '<a%s title="%s" href="%s">%s</a>';
+        $category = get_category($category);
+
+        if (!$category)  {
+            return false;
+        }
+
+        if (is_array($class)) {
+            $class = implode(' ', $class);
+        }
+        
+        $class = $this->item_class_attribute($class);
+        $title = esc_attr($category->cat_name);
+        $href = esc_url(get_category_link($category->cat_ID));
+        $text = $category->cat_name;
+
+        return sprintf($link, $class, $title, $href, $text);
     }
 }
 
