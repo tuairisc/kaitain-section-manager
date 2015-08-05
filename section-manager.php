@@ -362,7 +362,8 @@ class Section_Manager {
     /*
      * Output Section Menu
      * -------------------------------------------------------------------------
-     * @param   array   $args      Arguments for menu output (type and classes).
+     * @param   string      $menu_type          Type of menu.
+     * @param   array       $classes            Menu item classes.
      */
 
     public function sections_menu($menu_type = 'primary', $classes = array()) {
@@ -422,7 +423,7 @@ class Section_Manager {
      * @param   array   $args      Arguments for menu output (type and classes).
      */
 
-    public function section_cavalcade($args) {
+    public function section_cavalcade($args = array()) {
         $count = 1;
 
         $defaults = array(
