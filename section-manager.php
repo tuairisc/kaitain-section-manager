@@ -167,7 +167,7 @@ class Section_Manager {
                 if (is_category()) {
                     $category = get_query_var('cat');
                 } else if (is_single() && has_category()) {
-                    $category = get_the_category($post->ID)[0]->cat_ID;
+                    $category = wp_get_post_categories($post->ID)[0]->cat_ID;
                 }
 
                 $category = $this->category_parent_id($category);
