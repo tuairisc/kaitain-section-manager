@@ -393,7 +393,9 @@ class Section_Manager {
                 }
 
                 if ($menu_type === 'secondary') {
-                    $menu_class[] = sprintf('section-%s-text-hover', $key);
+                    $menu_class[] = sprintf('section-%s-text-hover',
+                        $section['slug']
+                    );
                 }
                 
                 $menu_class = implode(' ', $menu_class);
