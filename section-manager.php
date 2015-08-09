@@ -150,6 +150,7 @@ class Section_Manager {
      */
 
     public function set_current_section() {
+        global $post;
         $sections =& get_option(self::$keys['sections']);
 
         /* Temporary (probably). The client has not decided how to handle
@@ -165,7 +166,7 @@ class Section_Manager {
                 // 2. Else set categroy by the parent category.
                 if (is_category()) {
                     $category = get_query_var('cat');
-                } else if (is_single() && has_category(null, $post)) {
+                } else if (is_single() && has_category()) {
                     $category = get_the_category($post->ID)[0]->cat_ID;
                 }
 
