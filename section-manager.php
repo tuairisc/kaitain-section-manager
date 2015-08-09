@@ -222,7 +222,7 @@ class Section_Manager {
     private function category_parent_id($cat_id = null) {
         $category = get_category($cat_id);
 
-        if ($category->category_parent) {
+        if ($category && $category->category_parent) {
             $cat_id = $this->category_parent_id($category->category_parent);
         }
 
