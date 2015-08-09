@@ -391,6 +391,10 @@ class Section_Manager {
                         $uncurrent
                     );
                 }
+
+                if ($menu_type === 'secondary') {
+                    $menu_class[] = sprintf('section-%s-text-hover', $key);
+                }
                 
                 $menu_class = implode(' ', $menu_class);
                 $menu_class = $this->item_class_attribute($menu_class);
