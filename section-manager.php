@@ -165,7 +165,7 @@ class Section_Manager {
                 // 2. Else set categroy by the parent category.
                 if (is_category()) {
                     $category = get_query_var('cat');
-                } else if (is_single()) {
+                } else if (is_single() && has_category(null, $post)) {
                     $category = get_the_category($post->ID)[0]->cat_ID;
                 }
 
