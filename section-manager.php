@@ -430,6 +430,8 @@ class Section_Manager {
 
         $args = wp_parse_args($defaults, $args);
 
+        $last_section = end(self::$sections);
+
         foreach (self::$sections as $id => $slug) {
             $parent = get_category($id);
 
@@ -469,7 +471,7 @@ class Section_Manager {
             printf('</ul>');
 
             if ($args['wrap_container']) {
-                if ($count > 0 && $count % $args['sections_per_column'] === 0) {
+                if ($count > 0 && $count % $args['sections_per_column'] === 0 || $slug === $last_section) {
                     printf('</%s>', $args['container_type']);
                 }
             }
