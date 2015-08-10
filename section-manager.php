@@ -514,7 +514,7 @@ class Section_Manager {
      */
 
     private function generate_cat_link($category, $class = null) {
-        $link = '<a%s title="%s" href="%s">%s</a>';
+        $link = '<a%s href="%s">%s</a>';
         $category = get_category($category);
 
         if (!$category)  {
@@ -526,11 +526,10 @@ class Section_Manager {
         }
         
         $class = $this->item_class_attribute($class);
-        $title = esc_attr($category->cat_name);
         $href = esc_url(get_category_link($category->cat_ID));
         $text = $category->cat_name;
 
-        return sprintf($link, $class, $title, $href, $text);
+        return sprintf($link, $class, $href, $text);
     }
 }
 
