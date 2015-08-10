@@ -396,6 +396,11 @@ class Section_Manager {
                     $menu_class[] = sprintf('section-%s-text-hover',
                         $section['slug']
                     );
+
+                    $menu_class[] = sprintf('section-%s-shadow-hover',
+                        // "Interior" border effect.
+                        $section['slug']
+                    );
                 }
                 
                 $menu_class = implode(' ', $menu_class);
