@@ -403,7 +403,6 @@ class Section_Manager {
                     );
                 }
                 
-                $menu_class = implode(' ', $menu_class);
                 $menu_class = $this->item_class_attribute($menu_class);
 
                 // Put it all together and output.
@@ -501,8 +500,12 @@ class Section_Manager {
      * @return  string    $class       class attribute html. 
      */
 
-    private function item_class_attribute($class = null) {
-        return sprintf($class ? ' class="%s"' : '%s', $class); 
+    private function item_class_attribute($classes = null) {
+        if (is_array($classes)) {
+            $classes = implode(' ', $classes); 
+        }
+
+        return sprintf($classes ? ' class="%s"' : '%s', $classes); 
     }
 
     /**
