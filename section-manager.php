@@ -151,7 +151,7 @@ class Section_Manager {
 
     public function set_current_section() {
         global $post;
-        $sections =& get_option(self::$keys['sections']);
+        $sections = get_option(self::$keys['sections']);
 
         /* Temporary (probably). The client has not decided how to handle
          * non-section parts of the site, so it is all home for now. */
@@ -199,7 +199,7 @@ class Section_Manager {
 
     private function is_section_category($category) {
         $category = get_category($category);
-        $key =& self::$keys['sections'];
+        $key = self::$keys['sections'];
 
         if (!$category) {
             return false;
@@ -362,7 +362,7 @@ class Section_Manager {
      */
 
     public function sections_menu($menu_type = 'primary', $classes = array()) {
-        $section =& self::$section;
+        $section = self::$section;
 
         // Get menu from saved menu, and reduce secondary if called.
         $menu = get_option(self::$keys['menus'])[$menu_type];
