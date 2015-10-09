@@ -42,6 +42,8 @@ interface SM_Interface {
     public function sections_menu($menu_type, $classes);
     // A list of all sections.
     public function section_cavalcade($args);
+    // Return all CSS clases for a given section.
+    public function section_css_classes($category);
 }
 
 class Section_Manager implements SM_Interface {
@@ -314,7 +316,7 @@ class Section_Manager implements SM_Interface {
     public function set_section_body_class($classes) {
         $section_class = array();
 
-        $section_class[] = 'section-';
+        $section_class[] = 'section--';
         $section_class[] = self::$section['slug'];
         $classes[] = implode('', $section_class);
 
@@ -400,21 +402,21 @@ class Section_Manager implements SM_Interface {
 
                     if ($key === $section['slug']) {
                         $uncurrent = '';
-                        $menu_class[] = 'current-section-menu-item';
+                        $menu_class[] = 'section--current_menu-item';
                     }
                         
-                    $menu_class[] = sprintf('section-%s-background%s', 
+                    $menu_class[] = sprintf('section--%s-bg%s', 
                         $key,
                         $uncurrent
                     );
                 }
 
                 if ($menu_type === 'secondary') {
-                    $menu_class[] = sprintf('section-%s-text-hover',
+                    $menu_class[] = sprintf('section--%s-text-hover',
                         $section['slug']
                     );
 
-                    $menu_class[] = sprintf('section-%s-shadow-hover',
+                    $menu_class[] = sprintf('section--%s-shadow-hover',
                         // "Interior" border effect.
                         $section['slug']
                     );
@@ -523,6 +525,30 @@ class Section_Manager implements SM_Interface {
         }
 
         return sprintf($classes ? ' class="%s"' : '%s', $classes); 
+    }
+
+    /**
+     * Generate Category Link Text
+     * -------------------------------------------------------------------------
+     * @param   int/object      $category       Category ID or object.
+     * @return  array           $classes        Category CSS classes.
+     */
+
+    public function section_css_classes($category) {
+        $category = $this->get_section_slug($category); 
+
+        $classes = array(
+            'reg' => array(
+                'text' => sprintf('section--%s-text', $category),
+                'background' => sprintf('section--%s-bg', $category)
+            ), 
+            'hover' => array(
+                'text' => sprintf('section--%s-text-hover', $category),
+                'background' => sprintf('section--%s-bg-hover', $category)
+            )
+        );
+
+        return $classes;
     }
 
     /**
