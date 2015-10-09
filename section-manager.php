@@ -27,7 +27,24 @@
  * Section Manager. If not, see <http://www.gnu.org/licenses/>.
  */ 
 
-class Section_Manager {
+if (!defined('ABSPATH')) {
+    die('-1');
+}
+
+interface SM_Interface {
+    // Manually declare the current section of the side.
+    public function set_current_section();
+    // Return the slug of the current section of the site.
+    public function get_section_slug($category);
+    // Add the current section of the site to the <body> tag.
+    public function set_section_body_class($classes);
+    // Output menus for all sections, or for a section's child categories.
+    public function sections_menu($menu_type, $classes);
+    // A list of all sections.
+    public function section_cavalcade($args);
+}
+
+class Section_Manager implements SM_Interface {
     static $instantiated = false;
 
     // Current site section.
@@ -65,7 +82,7 @@ class Section_Manager {
 
         if ($categories['categories'] !== $sections['id'] 
         || $categories['home'] !== $sections['home'] || WP_DEBUG) {
-            // Update generated options and menu if sctions have changed.
+            // Update generated options and menu if sections have changed.
             $this->option_setup($categories);
             $this->menu_setup();
         }
@@ -243,8 +260,8 @@ class Section_Manager {
         $children = array();
 
         $categories = get_categories(array(
-            'child_of' => $category->cat_ID)
-        );
+            'child_of' => $category->cat_ID,
+        ));
 
         if ($categories) {
             foreach($categories as $cat) {
@@ -517,7 +534,7 @@ class Section_Manager {
      */
 
     private function generate_cat_link($category, $class = null) {
-        $link = '<a%s href="%s">%s</a>';
+        $link = '<a%s href="%s"><span>%s</span></a>';
         $category = get_category($category);
 
         if (!$category)  {
