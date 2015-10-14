@@ -396,30 +396,32 @@ class Section_Manager implements SM_Interface {
 
         if (!empty($menu)) {
             foreach ($menu as $cat_id => $item) {
+                // Current section and category CSS class modifiers.
+                $uncurrent_section = '-hover';
+                $uncurrent_category = '-hover';
+
                 $menu_class = $classes;
                 $class_attr = '';
 
                 if (is_category() && $cat === $cat_id) {
-                    // Flag this element if it is a category and matches 
-                    // current category.
-                    $menu_class[] = 'section--current-category';
+                    // Flag this element if it is a category and matches.
+                    $uncurrent_category = '';
                 }
 
                 if ($menu_type === 'primary') {
                     /* Primary menu items have hover and section classes.
                      * Uncurrent-section only show section colour on hover. */
-                    $uncurrent = '-hover';
 
                     if ($cat_id === $section['slug']) {
                         // Flag current site section with a menu class.
-                        $uncurrent = '';
+                        $uncurrent_section = '';
                         $menu_class[] = 'section--current_menu-item';
                     }
                         
                     $menu_class[] = sprintf('section--%s-bg%s', 
                         // ...otherwise give the element an on-hover class.
                         $cat_id,
-                        $uncurrent
+                        $uncurrent_section
                     );
                 }
 
@@ -429,9 +431,10 @@ class Section_Manager implements SM_Interface {
                         $section['slug']
                     );
 
-                    $menu_class[] = sprintf('section--%s-shadow-hover',
+                    $menu_class[] = sprintf('section--%s-shadow%s',
                         // "Interior" border effect.
-                        $section['slug']
+                        $section['slug'],
+                        $uncurrent_category
                     );
                 }
                 
