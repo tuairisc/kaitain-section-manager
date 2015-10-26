@@ -32,43 +32,43 @@ if (!defined('ABSPATH')) {
 }
 
 interface SM_Interface {
-    // Manually declare the current section of the side.
-    public function set_current_section();
-    // Return the slug of the current section of the site.
-    public function get_section_slug($category);
-    // Add the current section of the site to the <body> tag.
+    // Get the sibling section categories of a category.
+    public function section_child_categories($category);
+    // Return the slug of the section to which a category belong.
+    public function get_category_section_slug($category);
+    // Return the ID of the section to which a category belong.
+    public function get_category_section_id($category);
+    // Required to be public in order to determine section.
+    public function evaluate_current_section();
+    // Required to be public in order to set class.
     public function set_section_body_class($classes);
-    // Output menus for all sections, or for a section's child categories.
-    public function sections_menu($menu_type, $classes);
-    // A list of all sections.
-    public function section_cavalcade($args);
-    // Return all CSS clases for a given section.
-    public function section_css_classes($category);
 }
 
 class Section_Manager implements SM_Interface {
-    static $instantiated = false;
-
-    // Current site section.
-    public static $section;
-
-    private static $keys = array(
-        // Keys for saved options.
-        'sections' => 'section_manager_sections',
-        'menus' => 'section_manager_menus'
-    );
-
     private static $errors = array(
         'instance' => 'Error: Section Manager can only be instantiated once.',
-        'empty' => 'Error: An array of categories must be passed to Section Manager.',
+        'imaginary' => '%s does not exist in the list of category sections and will be ignored as a default.',
+        'empty_section' => 'Error: An array of categories must be passed to Section Manager.',
         'not_category' => '"%s" is not a valid category and will be skipped',
         'is_child' => '"%s" is a child category and will be skipped'
     );
 
-    public static $sections = array();
-    public static $menus = array();
+    private static $opts = array(
+        'sections' => 'sm_sections_list',
+        'default' => 'sm_default_section',
+        'current' => 'sm_current_section'
+    );
 
-    public function __construct($categories) {
+    static $instantiated;
+
+    public static $current_section;
+    public static $default_section;
+    public static $sections_list;
+    private static $class_prefix;
+
+    public function __construct($categories, $default_section = null, $prefix = null) {
+        // Test instantiation.
+
         if (self::$instantiated) {
             // More than one running instance can lead to strange things.
             throw new Exception(self::$errors['instance']);
@@ -76,84 +76,106 @@ class Section_Manager implements SM_Interface {
         
         self::$instantiated = true;
 
+        // Parse class args.
+
         if (!is_array($categories) || empty($categories)) {
-            throw new Exception(self::$errors['empty']);
+            // Throw error if no sections were provided.
+            throw new Exception(self::$errors['empty_section']);
         }
 
-        $sections = get_option(self::$keys['sections']);
+        if (!$default_section) {
+            // First passed section becomes default.
+            $default_section = $categories[0];
+        }
 
-        if ($categories['categories'] !== $sections['id'] 
-        || $categories['home'] !== $sections['home'] || WP_DEBUG) {
+        if (!$prefix) {
+            // All output slugs and class names are prepended with this.
+            $prefix = 'section--';
+        }
+
+        // Setup all sections.
+
+        self::$sections_list = get_option(self::$opts['sections']);
+        self::$class_prefix = $prefix;
+
+        if (!self::$sections_list || $categories !== self::$sections_list) {
             // Update generated options and menu if sections have changed.
-            $this->option_setup($categories);
-            $this->menu_setup();
+            self::$sections_list = $this->setup_sections($categories);
+            // $this->menu_setup();
         }
 
-        // Public variables for menu and section attributes.
-        self::$sections = get_option(self::$keys['sections'])['section'];
-        self::$menus = get_option(self::$keys['menus']);
+        // Establish default section.
+        // Default section is presented when a section cannot be established.
 
-        add_action('wp_head', array($this, 'set_current_section'));
+        self::$default_section = get_option(self::$opts['default']);
+
+        if (!self::$default_section || self::$default_section !== $default_section) {
+            self::$default_section = $this->setup_default_section($default_section);
+        }
+
+        // Establish current section.
+
+        add_action('wp_head', array($this, 'evaluate_current_section'));
+
+        // Append current section class to body tag.
+        
         add_filter('body_class', array($this, 'set_section_body_class'));
     }
 
     /**
-     * Determine Current Section
+     * Validate Site Section Categories
      * -------------------------------------------------------------------------
-     * The site is segmented into n primary sections. This generates the
-     * WordPress options for the site sections if the array of sections changes.
+     * Site section categories are passed through an initial array. This 
+     * validates the array and sets up the class sections variable.
      * 
      * @param   array       $categories         Structured array of categories.
      * @return  array       $sections           Parsed array of sections.
      */
 
-    private function option_setup($categories = null) {
-        $sections = array(
-            'id' => array(),
-            'section' => array()
-        );
+    private function setup_sections($categories) {
+        $sections = array();
 
-        foreach ($categories['categories'] as $cat) {
-            /* Passed int must resolve to a site category.
-             * Category must be a top-level parent category. */
-            $category = get_category($cat);
-
-            if (!$category) {
-                trigger_error(
-                    sprintf(self::$errors['not_category'], $cat),
-                    E_USER_WARNING
-                );
-
+        foreach ($categories as $category) {
+            if (!($category = get_category($category))) {
+                // 1. Passed category IDs must represent categories.
+                trigger_error(sprintf(self::$errors['not_category'], $category), E_USER_WARNING);
                 continue;
             }
 
             if ($category->category_parent) {
-                trigger_error(sprintf(
-                    self::$errors['is_child'], $cat),
-                    E_USER_WARNING
-                );
-
+                // 2. Sections derive from categories.
+                trigger_error(sprintf(self::$errors['is_child'], $category), E_USER_WARNING);
                 continue;
             }
 
-            $sections['id'][] = $category->cat_ID;
-            $sections['section'][$category->cat_ID] = $category->slug;
+            if (in_array($category->cat_ID, $sections)) {
+                // 3. If a duplicate section is passed.
+                trigger_error(sprintf(self::$errors['duplicate'], $category), E_USER_WARNING);
+                continue;
+            }
+
+            $sections[$category->slug] = $category->cat_ID;
         }
 
-        if (isset($categories['home']) && get_category($categories['home'])) {
-            // If home is set, use it, otherwise, pick first passed category.
-            $home_id = $categories['home'];
-            $home_slug = $this->get_section_slug($categories['home']);
-        } else {
-            $home_id = $sections['id'][0];
-            $home_slug = $this->get_section_slug($sections['id'][0]);
-        }
-
-        $sections['home']['id'] = $home_id;
-        $sections['home']['slug'] = $home_slug;
-
-        update_option(self::$keys['sections'], $sections);
+        update_option(self::$opts['sections'], $sections, true);
         return $sections;
+    }
+
+    /**
+     * Set Default Section
+     * -------------------------------------------------------------------------
+     * @param   object/int      $section_id        Section category ID.
+     * @return  object/int      $section_id        Section category ID.
+     */
+
+    private function setup_default_section($section) {
+        if (!in_array($section, self::$sections_list)) {
+            trigger_error(sprintf(self::$errors['imaginary'], $category), E_USER_WARNING);
+            $section = self::$sections_list[reset(self::$sections_list)];
+        }
+
+        update_option(self::$opts['default'], $section);
+        return $section;
     }
 
     /**
@@ -168,41 +190,37 @@ class Section_Manager implements SM_Interface {
      * spam and cause wp_head to trigger muptiple times.
      */
 
-    public function set_current_section() {
-        global $post;
-        $sections = get_option(self::$keys['sections']);
+    public function evaluate_current_section() {
+        $current_id = 0;
 
-        /* Temporary (probably). The client has not decided how to handle
-         * non-section parts of the site, so it is all home for now. */
-        $current_id = $sections['home']['id'];
-
-        if (!isset(self::$section) || !self::$section && !is_404()) {
-            if (is_home() || is_front_page()) {
+        if (!is_404()) {
+            if (is_home() || is_front_page() || is_page()) {
                 // 1. If home page or main index, default to first item.
-                $current_id = $sections['home']['id'];
+                $current_id = self::$default_section;
             } else if (is_category() || is_single()) {
+                global $post;
 
                 // 2. Else set categroy by the parent category.
                 if (is_category()) {
                     $category = get_query_var('cat');
                 } else if (is_single()) {
+                    // 3. Simply grab the first post category and run with that.
                     $category = get_the_category()[0]->cat_ID;
                 }
 
-                $category = $this->category_parent_id($category);
+                $category = get_category($this->get_category_ancestor($category));
 
                 if ($this->is_section_category($category)) {
                     $current_id = $category;
                 }
-            } 
-
-            // 3. Add more sections here if they need to be evaluated.
+            }
         }
 
-        self::$section = array(
-            'id' => $current_id,
-            'slug' => $this->get_section_slug($current_id)
-        );
+        if (!$current_id) {
+            $current_id = 999;
+        }
+
+        self::$current_section = $current_id;
     }
 
     /**
@@ -217,32 +235,21 @@ class Section_Manager implements SM_Interface {
      */
 
     private function is_section_category($category) {
-        $category = get_category($category);
-        $key = self::$keys['sections'];
-
-        if (!$category) {
-            return false;
-        }
-        
-        return (in_array($category->cat_ID, get_option($key)['id']));
+        return !!in_array($category->cat_ID, self::$sections_list);
     }
 
     /**
-     * Get ID of Category's Ultimate Parent
+     * Recursively Ascend to Category's Parent 
      * -------------------------------------------------------------------------
-     * The site is sectioned into several parent categories with children and 
-     * grandchildren beneath. Recursively ascend through parent categories
-     * until you hit the top.
-     * 
      * @param   int     $cat_id          Category ID
-     * @param   int     $cat_id          ID of original category's parent.
+     * @return  int     $cat_id          ID of original category's parent.
      */
 
-    private function category_parent_id($cat_id = null) {
+    private function get_category_ancestor($cat_id = null) {
         $category = get_category($cat_id);
 
         if ($category && $category->category_parent) {
-            $cat_id = $this->category_parent_id($category->category_parent);
+            $cat_id = $this->get_category_ancestor($category->category_parent);
         }
 
         return $cat_id;
@@ -257,16 +264,12 @@ class Section_Manager implements SM_Interface {
      * @return  array           $children      Array of category children IDs.
      */
 
-    private function category_children($category) {
-        $category = get_category($category);
+    public function section_child_categories($category) {
+        $category = get_category($this->get_category_ancestor($category));
         $children = array();
 
-        $categories = get_categories(array(
-            'child_of' => $category->cat_ID,
-        ));
-
-        if ($categories) {
-            foreach($categories as $cat) {
+        if (($category = get_categories(array('child_of' => $category->cat_ID)))) {
+            foreach($category as $cat) {
                 $children[] = $cat->cat_ID;
             }
         }
@@ -275,32 +278,45 @@ class Section_Manager implements SM_Interface {
     }
 
     /**
-     * Get Section Slug
+     * Get Slug of Section Related to Input Category
      * -------------------------------------------------------------------------
      * @param   object/id       $category       Category ID or object.
-     * @return  string          $slog           Slug for current section.
+     * @return  string          $slug           Slug for section.
      */
 
-    public function get_section_slug($category) {
-        $slug = 'other';
-        $category = get_category($category); 
+    public function get_category_section_slug($category) {
+        $slug = '';
 
-        if ($category) {
-            $category = $this->category_parent_id($category->cat_ID);
-        }
+        $category = get_category($this->get_category_ancestor($category));
 
-        /* Since '999' doesn't exist as a section, going to a tag or search
-         * would cause a warning to be thrown since it comes up '999'. */
-
-        if ($category && array_key_exists($category, self::$sections)) {
-            $option = get_option(self::$keys['sections'])['section'][$category];
-
-            if ($option) {
-                $slug = $option;
-            }
+        if (in_array($category->cat_ID, self::$sections_list)) {
+            $slug = $category->slug;
+        } else {
+            $slug = 'other';
         }
 
         return $slug;
+    }
+
+    /**
+     * Get ID of Section Related to Input Category
+     * -------------------------------------------------------------------------
+     * @param   object/id       $category       Category ID or object.
+     * @return  string          $id             ID of section.
+     */
+
+    public function get_category_section_id($category) {
+        $id = 0;
+
+        $category = get_category($this->get_category_ancestor($category));
+
+        if (array_search($category->cat_ID, self::$sections_list)) {
+            $id = $category->cat_ID;
+        } else {
+            $id = 999;
+        }
+
+        return $id;
     }
 
     /**
@@ -314,284 +330,9 @@ class Section_Manager implements SM_Interface {
      */
 
     public function set_section_body_class($classes) {
-        $section_class = array();
-
-        $section_class[] = 'section--';
-        $section_class[] = self::$section['slug'];
-        $classes[] = implode('', $section_class);
-
+        $slug = $this->get_category_section_slug(self::$current_section);
+        $classes[] = self::$class_prefix . $slug;
         return $classes;
-    }
-
-    /**
-     * Setup Section Menus
-     * -------------------------------------------------------------------------
-     * Save generated sections menu to site options. Sections aren't expected
-     * to change on a frequent basis, so run one, save, and only call again is
-     * sections have changed.
-     */
-
-    private function menu_setup() {
-        $sections = get_option(self::$keys['sections']);
-        $menu = array();
-
-        foreach ($sections['section'] as $id => $slug) {
-            $menu['primary'][$slug] = $this->generate_menu_item($id);
-            
-            foreach ($this->category_children($id) as $child) {
-                $menu['secondary'][$slug][$child] = $this->generate_menu_item($child);
-            }
-        }
-
-        update_option(self::$keys['menus'], $menu);
-        return $menu;
-    }
-
-    /**
-     * Generate HTML Category List Item
-     * -------------------------------------------------------------------------
-     * Generate the actual HTML for the menu item based on the passed category.
-     * 
-     * @param   object/int  $category       Category which needs a link.
-     * @return  string  $ln                 Generated menu item.
-     */
-
-    private function generate_menu_item($category) {
-        $category = get_category($category);
-
-        if (!$category) {
-            return;
-        }
-        
-        // Handled through an array because it is stored and retrived later.
-        $item = array();
-
-        $item[] = '<li%s>';
-        $item[] = $this->generate_cat_link($category);
-        $item[] = '</li>';
-
-        return implode('', $item);
-    }
-
-    /*
-     * Output Section Menu
-     * -------------------------------------------------------------------------
-     * @param   string      $menu_type          Type of menu.
-     * @param   array       $classes            Menu item classes.
-     */
-
-    public function sections_menu($menu_type = 'primary', $classes = array()) {
-        $section = self::$section;
-
-        if (is_category()) {
-            global $cat;
-        }
-
-        // Get menu from saved menu, and reduce secondary if called.
-        $menu = get_option(self::$keys['menus'])[$menu_type];
-
-        if ($menu_type === 'secondary') {
-            $menu = $menu[$section['slug']];
-        }
-
-        if (!empty($menu)) {
-            foreach ($menu as $cat_id => $item) {
-                // Current section and category CSS class modifiers.
-                $uncurrent_section = '-hover';
-                $uncurrent_category = '-hover';
-
-                $menu_class = $classes;
-                $class_attr = '';
-
-                if (is_category() && $cat === $cat_id) {
-                    // Flag this element if it is a category and matches.
-                    $uncurrent_category = '';
-                }
-
-                if ($menu_type === 'primary') {
-                    /* Primary menu items have hover and section classes.
-                     * Uncurrent-section only show section colour on hover. */
-
-                    if ($cat_id === $section['slug']) {
-                        // Flag current site section with a menu class.
-                        $uncurrent_section = '';
-                        $menu_class[] = 'section--current_menu-item';
-                    }
-                        
-                    $menu_class[] = sprintf('section--%s-bg%s', 
-                        // ...otherwise give the element an on-hover class.
-                        $cat_id,
-                        $uncurrent_section
-                    );
-                }
-
-                if ($menu_type === 'secondary') {
-
-                    $menu_class[] = sprintf('section--%s-text-hover',
-                        $section['slug']
-                    );
-
-                    $menu_class[] = sprintf('section--%s-shadow%s',
-                        // "Interior" border effect.
-                        $section['slug'],
-                        $uncurrent_category
-                    );
-                }
-                
-                $menu_class = $this->item_class_attribute($menu_class);
-
-                // Put it all together and output.
-                printf($item, $menu_class);
-            }
-        }
-    }
-
-    /*
-     * Section Cavalcade
-     * -------------------------------------------------------------------------
-     * Generate a cavalcade list of sections and child categories output as 
-     * 
-     * container
-     *      ul
-     *         section
-     *         child
-     *         child
-     *         child
-     *
-     * @param   array   $args      Arguments for menu output (type and classes).
-     */
-
-    public function section_cavalcade($args = array()) {
-        $count = 1;
-
-        $defaults = array(
-            'sections_per_column' => 3,
-            'wrap_container' => true,
-            'container_type' => 'nav',
-            'container_class' => 'footer-site-sections',
-            'menu_class' => 'footer-section-menu',
-            'menu_item_class' => 'footer-section-item',
-            'anchor_class' => 'footer-section-link'
-        );
-
-        $args = wp_parse_args($defaults, $args);
-
-        $last_section = end(self::$sections);
-
-        foreach (self::$sections as $id => $slug) {
-            $parent = get_category($id);
-
-            $children = get_categories(array(
-                'child_of' => $id
-            ));
-
-            if ($args['wrap_container']) {
-                if ($count % $args['sections_per_column'] === 1) {
-                    printf('<%s%s>',
-                        $args['container_type'],
-                        $this->item_class_attribute($args['container_class'])
-                    );
-                }
-            }
-
-            printf('<ul%s id="section-footer-menu-%s">', 
-                $this->item_class_attribute($args['menu_class']),
-                $slug
-            );
-
-            printf('<li%s>%s</li>',
-                $this->item_class_attribute($args['menu_item_class']),
-                $this->generate_cat_link($parent, $args['anchor_class'])
-            );
-
-            if ($children) {
-                // Some sections may not have children categories.
-                foreach ($children as $child) {
-                    printf('<li%s>%s</li>',
-                        $this->item_class_attribute($args['menu_item_class']),
-                        $this->generate_cat_link($child)
-                    );
-                }
-            }
-
-            printf('</ul>');
-
-            if ($args['wrap_container']) {
-                if ($count > 0 && $count % $args['sections_per_column'] === 0 || $slug === $last_section) {
-                    printf('</%s>', $args['container_type']);
-                }
-            }
-
-            $count++;
-        }
-    }
-
-    /**
-     * Add Class Attribute
-     * -------------------------------------------------------------------------
-     * Returns ' class="$foo_class"' if $class isn't empty.
-     *
-     * @param   string    $class       class attribute.
-     * @return  string    $class       class attribute html. 
-     */
-
-    private function item_class_attribute($classes = null) {
-        if (is_array($classes)) {
-            $classes = implode(' ', $classes); 
-        }
-
-        return sprintf($classes ? ' class="%s"' : '%s', $classes); 
-    }
-
-    /**
-     * Generate Category Link Text
-     * -------------------------------------------------------------------------
-     * @param   int/object      $category       Category ID or object.
-     * @return  array           $classes        Category CSS classes.
-     */
-
-    public function section_css_classes($category) {
-        $category = $this->get_section_slug($category); 
-
-        $classes = array(
-            'reg' => array(
-                'text' => sprintf('section--%s-text', $category),
-                'background' => sprintf('section--%s-bg', $category)
-            ), 
-            'hover' => array(
-                'text' => sprintf('section--%s-text-hover', $category),
-                'background' => sprintf('section--%s-bg-hover', $category)
-            )
-        );
-
-        return $classes;
-    }
-
-    /**
-     * Generate Category Link Text
-     * -------------------------------------------------------------------------
-     * 
-     * @param   int/object      $category       Category that needs to be linked.
-     * @param   string/array    $class          Class(es) to be added to link.
-     */
-
-    private function generate_cat_link($category, $class = null) {
-        $link = '<a%s href="%s"><span>%s</span></a>';
-        $category = get_category($category);
-
-        if (!$category)  {
-            return false;
-        }
-
-        if (is_array($class)) {
-            $class = implode(' ', $class);
-        }
-        
-        $class = $this->item_class_attribute($class);
-        $href = esc_url(get_category_link($category->cat_ID));
-        $text = $category->cat_name;
-
-        return sprintf($link, $class, $href, $text);
     }
 }
 
