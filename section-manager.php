@@ -324,7 +324,7 @@ class Section_Manager implements SM_Interface {
      * -------------------------------------------------------------------------
      * Attacch current section to body_class. I think it's a bit mad like that 
      * WordPress doesn't have an action for body_id.
-     e
+     *
      * @param   array       $classes        Array of body classes.
      * @return  array       $classes        Array of body classes.
      */
