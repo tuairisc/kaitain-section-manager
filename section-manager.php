@@ -289,7 +289,7 @@ class Section_Manager implements SM_Interface {
 
         $category = get_category($this->get_category_ancestor($category));
 
-        if (in_array($category->cat_ID, self::$sections_list)) {
+        if ($category && in_array($category->cat_ID, self::$sections_list)) {
             $slug = $category->slug;
         } else {
             $slug = 'other';
