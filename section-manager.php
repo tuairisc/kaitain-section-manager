@@ -211,7 +211,7 @@ class Section_Manager implements SM_Interface {
                 $category = get_category($this->get_category_ancestor($category));
 
                 if ($this->is_section_category($category)) {
-                    $current_id = $category;
+                    $current_id = $category->cat_ID;
                 }
             }
         }
